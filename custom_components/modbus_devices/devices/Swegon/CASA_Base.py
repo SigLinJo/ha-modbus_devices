@@ -36,7 +36,12 @@ class Device(ModbusDevice):
         self.Datapoints[GROUP_COMMANDS] = {
             "Operating Mode": ModbusDatapoint(address=5000, entity_data=EntityDataSelect(options={0: "Stopped", 1: "Away", 2: "Home", 3: "Boost", 4: "Travel"})),
             "Fireplace Mode": ModbusDatapoint(address=5001, entity_data=EntityDataSwitch()),
+            "Fireplace function visibility in Smart functions": ModbusDatapoint(address=5200, entity_data=EntityDataSwitch(enabledDefault=False)),
             "Travelling Mode": ModbusDatapoint(address=5003, entity_data=EntityDataSwitch()),
+            "Cooker Hood Damper Control": ModbusDatapoint(address=5004, entity_data=EntityDataSwitch(enabledDefault=False)),
+            "Cooker Hood function": ModbusDatapoint(address=5019, entity_data=EntityDataSwitch(enabledDefault=False)),
+            "Cooker Hood Roof Fan Compensation": ModbusDatapoint(address=5110, entity_data=EntityDataSwitch(enabledDefault=False)),
+            
         }
 
         # COMMANDS2 - Write
