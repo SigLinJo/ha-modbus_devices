@@ -5,7 +5,8 @@
 import logging
 
 from ..modbusdevice import ModbusDevice
-from ..datatypes import ModbusDatapoint, ModbusGroup, ModbusDefaultGroups, ModbusMode, ModbusPollMode
+from ..const import ModbusMode, ModbusPollMode, ModbusDataType
+from ..datatypes import ModbusDatapoint, ModbusGroup, ModbusDefaultGroups
 from ..datatypes import EntityDataSensor, EntityDataSelect, EntityDataNumber, EntityDataBinarySensor, EntityDataSwitch, EntityDataButton
 
 from homeassistant.const import UnitOfTemperature, UnitOfTime
@@ -18,6 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 
 # Define groups
 GROUP_COMMANDS = ModbusGroup(ModbusMode.HOLDING, ModbusPollMode.POLL_ON)
+GROUP_COMMANDS3 = ModbusGroup(ModbusMode.HOLDING, ModbusPollMode.POLL_ON)
+GROUP_COMMANDS4 = ModbusGroup(ModbusMode.HOLDING, ModbusPollMode.POLL_ON)
 GROUP_COMMANDS2 = ModbusGroup(ModbusMode.HOLDING, ModbusPollMode.POLL_OFF) 
 GROUP_SETPOINTS = ModbusGroup(ModbusMode.HOLDING, ModbusPollMode.POLL_ON)
 GROUP_DEVICE_INFO = ModbusGroup(ModbusMode.INPUT, ModbusPollMode.POLL_ONCE)
@@ -41,19 +44,27 @@ class Device(ModbusDevice):
             "Cooker Hood Damper Control": ModbusDatapoint(address=5004, entity_data=EntityDataSwitch(enabledDefault=False)),
             "Cooker Hood function": ModbusDatapoint(address=5019, entity_data=EntityDataSwitch(enabledDefault=False)),
             "Cooker Hood Roof Fan Compensation": ModbusDatapoint(address=5110, entity_data=EntityDataSwitch(enabledDefault=False)),
-            "Cooker Hood Boost": ModbusDatapoint(address=5150, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=0, max_value=100, step=1,enabledDefault=False)),
             "Auto Home/Away/Boost control": ModbusDatapoint(address=5001, entity_data=EntityDataSwitch(enabledDefault=False)),
-            "Auto Humidity control": ModbusDatapoint(address=5009, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)), #Available only in units with RH sensor (SW 3.1 -> )
-            "Auto Air Quality control": ModbusDatapoint(address=5010, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)), #Available only in units with RH sensor (SW 3.1 -> )
-            "Summer Night Cooling control": ModbusDatapoint(address=5163, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)), #Available only in units with RH sensor (SW 3.1 -> )
-            "Summer Cooling Open Cooker hood damper": ModbusDatapoint(address=5176, entity_data=EntityDataSwitch(enabledDefault=False)),
-            "Summer Night Cooling Boost control": ModbusDatapoint(address=5168, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)), #Available only in units with RH sensor (SW 3.1 -> )
+            "Auto Humidity control": ModbusDatapoint(address=5009, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)),
+            "Auto Air Quality control": ModbusDatapoint(address=5010, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)),
             "Heating boost control": ModbusDatapoint(address=5011, entity_data=EntityDataSwitch(enabledDefault=False)),
-            "Heating Mode": ModbusDatapoint(address=5173, entity_data=EntityDataSelect(options={0: "Comfort unavailable", 1: "ECO", 2: "Comfort"},enabledDefault=False)), #Available only in units with RH sensor (SW 3.1 -> )
-            "Ventilation control mode": ModbusDatapoint(address=5310, entity_data=EntityDataSelect(options={0: "Normal", 1: "PA Supply control", 2: "PA Extract control", 3: "PA contro", 4: " l/s control"},enabledDefault=False)),
             "Internal Post heater": ModbusDatapoint(address=5013, entity_data=EntityDataSwitch(enabledDefault=False)),
             "External Post heater": ModbusDatapoint(address=5015, entity_data=EntityDataSwitch(enabledDefault=False)),
+
         }
+        # COMMANDS - Read/Write
+        self.Datapoints[GROUP_COMMANDS3] = {
+            "Heating Mode": ModbusDatapoint(address=5173, entity_data=EntityDataSelect(options={0: "Comfort unavailable", 1: "ECO", 2: "Comfort"},enabledDefault=False)),
+            "Summer Night Cooling control": ModbusDatapoint(address=5163, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)),
+            "Summer Cooling Open Cooker hood damper": ModbusDatapoint(address=5176, entity_data=EntityDataSwitch(enabledDefault=False)),
+            "Summer Night Cooling Boost control": ModbusDatapoint(address=5168, entity_data=EntityDataSelect(options={0: "Off", 1: "User", 2: "Normal", 3: "High", 4: "Full"},enabledDefault=False)),
+            "Cooker Hood Boost": ModbusDatapoint(address=5150, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=0, max_value=100, step=1,enabledDefault=False)),
+        }
+        # COMMANDS - Read/Write
+        self.Datapoints[GROUP_COMMANDS4] = {
+            "Ventilation control mode": ModbusDatapoint(address=5310, entity_data=EntityDataSelect(options={0: "Normal", 1: "PA Supply control", 2: "PA Extract control", 3: "PA contro", 4: " l/s control"},enabledDefault=False)),
+        }
+
 
         # COMMANDS2 - Write
         self.Datapoints[GROUP_COMMANDS2] = {
@@ -72,8 +83,8 @@ class Device(ModbusDevice):
             "FW Build": ModbusDatapoint(address=6002),
             "Par Maj": ModbusDatapoint(address=6003),
             "Par Min": ModbusDatapoint(address=6004),
-            "Model Name": ModbusDatapoint(address=6007, length=15, type='string'),        # 15 registers
-            "Serial Number": ModbusDatapoint(address=6023, length=24, type='string'),     # 24 registers
+            "Model Name": ModbusDatapoint(address=6007, length=15, type=ModbusDataType.STRING),        # 15 registers
+            "Serial Number": ModbusDatapoint(address=6023, length=24, type=ModbusDataType.STRING),     # 24 registers
         }
 
         # ALARMS - Read-only
@@ -165,13 +176,11 @@ class Device(ModbusDevice):
             "Travelling Mode Speed Drop": ModbusDatapoint(address=5105, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=0, max_value=20, step=1)),
             "Fireplace Run Time": ModbusDatapoint(address=5103, entity_data=EntityDataNumber(units=UnitOfTime.MINUTES, min_value=0, max_value=60, step=1)),
             "Fireplace Max Speed Difference": ModbusDatapoint(address=5104, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=0, max_value=25, step=1)),
-            "Cooker Hood Home state compensation": ModbusDatapoint(address=5108, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=0, max_value=50, step=1)),
-            "Cooker Hood Boost state compansation correction": ModbusDatapoint(address=5109, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=0, max_value=50, step=1)),
+            "Night Cooling": ModbusDatapoint(address=5163, entity_data=EntityDataNumber(units=None)),
             "Night Cooling FreshAir Max": ModbusDatapoint(address=5164, scaling=0.1, entity_data=EntityDataNumber(deviceClass=NumberDeviceClass.TEMPERATURE, units=UnitOfTemperature.CELSIUS, min_value=0, max_value=25, step=0.1)),
             "Night Cooling FreshAir Start": ModbusDatapoint(address=5165, scaling=0.1, entity_data=EntityDataNumber(deviceClass=NumberDeviceClass.TEMPERATURE, units=UnitOfTemperature.CELSIUS, min_value=0, max_value=25, step=0.1)),
             "Night Cooling RoomTemp Start": ModbusDatapoint(address=5166, scaling=0.1, entity_data=EntityDataNumber(deviceClass=NumberDeviceClass.TEMPERATURE, units=UnitOfTemperature.CELSIUS, min_value=0, max_value=35, step=0.1)),
             "Night Cooling SupplyTemp Min": ModbusDatapoint(address=5167, scaling=0.1, entity_data=EntityDataNumber(deviceClass=NumberDeviceClass.TEMPERATURE, units=UnitOfTemperature.CELSIUS, min_value=10, max_value=25, step=0.1)),
-            
             "Away Supply Speed": ModbusDatapoint(address=5301, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=20, max_value=100, step=1)),
             "Away Exhaust Speed": ModbusDatapoint(address=5302, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=20, max_value=100, step=1)),
             "Home Supply Speed": ModbusDatapoint(address=5303, entity_data=EntityDataNumber(units=PERCENTAGE, min_value=20, max_value=100, step=1)),
